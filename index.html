@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Page avec 3 div</title>
+    <title>Page avec 3 div (optimisée)</title>
     <style>
       * {
         box-sizing: border-box;
@@ -11,360 +11,236 @@
       html,
       body {
         height: 100%;
-        overflow: hidden;
-      }
-      body {
-        font-family: Arial, sans-serif;
         margin: 0;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
       }
       .container {
         display: flex;
         flex-direction: column;
         height: 100vh;
-        overflow: hidden; /* ensure the page container does not create a scrollbar */
-      }
-      .box {
-        width: 100%;
-        text-align: center;
-        overflow: visible; /* allow specific areas to scroll instead */
+        height: 100dvh;
+        overflow: hidden;
       }
       #header,
       #footer {
-        background: #f9f9f9;
         flex: 0 0 40px;
-        padding: 10px 40px; /* 5px vertical padding for header content */
-        white-space: normal;
         display: flex;
         align-items: center;
         justify-content: center;
-        overflow: visible;
-        overflow-wrap: break-word;
-        word-break: break-word;
+        background: #f9f9f9;
+        padding: 10px 40px;
       }
       #header {
         font-weight: bold;
         font-size: 2em;
       }
-      /* main body container (corrected id) */
       #body {
-        background: #eef9f9;
         flex: 1 1 auto;
-        min-height: 100px;
-        padding: 0 10px; /* remove vertical padding which can cause overflow */
-        /* background image from background/fond.jpg */
-        background-image: url("background/fond.jpg");
-        background-size: cover;
-        background-position: center center;
-        background-repeat: no-repeat;
-        white-space: normal;
-        overflow-wrap: break-word;
-        word-break: break-word;
+        background: #eef9f9 url("background/fond.jpg") center/cover no-repeat;
         display: flex;
         align-items: center;
         justify-content: center;
       }
 
-      /* diapos: adapt to screen orientation
-       - in landscape (width > height) it should fill the available height
-       - in portrait (height >= width) it should fill the available width
-    */
+      /* zone diapo avec ratio 4:3 */
       #diapos {
-        background-color: #ffffff;
+        background-color: #fff;
         box-shadow: rgba(0, 0, 0, 0.08) 0px 4px 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative; /* anchor absolutely positioned slides inside */
-        max-width: 100%;
-        max-height: 100%;
-        /* keep a 4:3 aspect ratio */
-        aspect-ratio: 4 / 3;
-        width: auto;
-        height: auto;
-        overflow: hidden; /* hide overflow; slides will be positioned inside */
-        /* ensure diapos never exceeds the viewport area left for it (viewport minus header+footer) */
+        position: relative;
+        aspect-ratio: 4/3;
+        overflow: hidden;
         max-height: calc(100vh - 80px);
       }
-
-      /* Landscape: make diapos fill available height while keeping 4:3 */
       @media (orientation: landscape) {
         #diapos {
           height: 100%;
           width: auto;
-          max-width: none;
         }
       }
-
-      /* Portrait: make diapos fill available width while keeping 4:3 */
       @media (orientation: portrait) {
         #diapos {
           width: 100%;
           height: auto;
-          max-height: none;
         }
       }
 
-      /* carousel styles */
-      #carousel {
+      /* slides + transitions */
+      .slides {
         position: relative;
         width: 100%;
         height: 100%;
-        display: flex;
-        align-items: center;
-      }
-      #carousel button {
-        background: rgba(0, 0, 0, 0.05);
-        border: none;
-        padding: 8px 12px;
-        cursor: pointer;
-      }
-      .slides {
-        position: absolute;
-        inset: 0;
-        overflow: hidden; /* prevent page-level or container scroll; slides handle internal scroll */
       }
       .slide {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        overflow: auto;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
       }
-      /* fullscreen helper: center a 4:3 diapos at full viewport height */
-      #diapos.fullscreen {
-        position: fixed !important;
-        inset: 0 !important; /* fill viewport to allow centering */
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        z-index: 9999;
-        background: #000; /* dark background around the centered diapo */
-        overflow: hidden;
+      .slide.active {
+        opacity: 1;
+        pointer-events: auto;
       }
-
-      /* when fullscreen, make the slides area 4:3 and full viewport height */
-      #diapos.fullscreen .slides {
-        position: relative !important;
-        width: calc(100vh * 4 / 3) !important;
-        height: 100vh !important;
-        overflow: hidden !important;
+      iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
       }
-
-      #diapos.fullscreen .slide {
-        position: absolute !important;
-        inset: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        background-color: #fff; /* ensure slide has white background */
-      }
-
-      /* make iframes fill the slide area when fullscreen */
-      #diapos.fullscreen iframe {
-        width: 100% !important;
-        height: 100% !important;
-      }
-      /* hide residual scrollbars on container elements */
-      html, body, .container, #body, #diapos, .slides {
-        -ms-overflow-style: none; /* IE/Edge */
-        scrollbar-width: none; /* Firefox */
-      }
-      html::-webkit-scrollbar, body::-webkit-scrollbar, .container::-webkit-scrollbar, #body::-webkit-scrollbar, #diapos::-webkit-scrollbar, .slides::-webkit-scrollbar {
-        display: none; /* Chrome/Safari/WebKit */
-        width: 0;
-        height: 0;
-      }
-      /* ensure iframe doesn't create extra line-height or gaps */
-      iframe { display: block; }
       .loading {
         display: flex;
         align-items: center;
         justify-content: center;
         height: 100%;
         color: #666;
-        font-size: 1rem;
       }
+
+      /* navigation */
       .dots {
         display: flex;
         gap: 8px;
         justify-content: center;
-        margin-top: 8px;
       }
       .dot {
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        background: #ccc;
         border: none;
+        background: #ccc;
         cursor: pointer;
       }
       .dot.active {
         background: #333;
       }
+      #controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+      }
+      #controls button {
+        background: rgba(0, 0, 0, 0.05);
+        border: none;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+
+      /* plein écran */
+      #diapos.fullscreen {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #diapos.fullscreen .slides {
+        width: calc(100vh * 4 / 3);
+        height: 100vh;
+        height: 100dvh;
+      }
+      #diapos.fullscreen iframe {
+        background: #fff;
+      }
     </style>
   </head>
   <body>
     <div class="container">
-      <div id="header" class="box"></div>
-      <div id="body" class="box">
+      <div id="header"></div>
+      <div id="body">
         <div id="diapos">
-          <!-- carousel structure injected by script -->
-          <div id="slides" class="slides" aria-roledescription="carousel">
-            <!-- slides will be added here -->
-          </div>
+          <div id="slides" class="slides"></div>
         </div>
       </div>
-      <div id="footer" class="box">
-        <!-- Navigation moved to footer: prev / dots / next -->
-        <div
-          id="controls"
-          style="
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            justify-content: center;
-          "
-        >
+      <div id="footer">
+        <div id="controls">
           <button id="prev" aria-label="Précédent">◀</button>
-          <div
-            id="dots"
-            class="dots"
-            role="tablist"
-            aria-label="Navigation des diapositives"
-          >
-            <!-- dots will be added here -->
-          </div>
+          <div id="dots" class="dots"></div>
           <button id="next" aria-label="Suivant">▶</button>
-          <button id="fsToggle" aria-pressed="false" aria-label="Plein écran">
-            ⤢
-          </button>
+          <button id="fsToggle" aria-label="Plein écran" aria-pressed="false">⤢</button>
         </div>
       </div>
     </div>
 
     <script>
       (async function () {
-        // Discover slidesFiles automatically.
-        // Strategy:
-        // 1) try to fetch a manifest at diapos/list.json (array of relative paths)
-        // 2) fallback: probe diapos/diapo1..diapo50 for diapoN/diapoN.html
+        // --- Découverte automatique des diapos ---
         async function discoverSlides() {
-          // try manifest
           try {
             const res = await fetch("diapos/list.json");
             if (res.ok) {
-              const data = await res.json();
-              if (Array.isArray(data) && data.length) return data;
+              const list = await res.json();
+              if (Array.isArray(list) && list.length) return list;
             }
-          } catch (e) {
-            /* ignore manifest error */
-          }
-
+          } catch {}
           const found = [];
           for (let i = 1; i <= 50; i++) {
             const path = `diapos/diapo${i}/diapo${i}.html`;
             try {
               const r = await fetch(path, { method: "HEAD" });
-              if (r.ok) {
-                found.push(path);
-                continue;
-              }
-            } catch (e) {
-              // HEAD may be blocked; try GET but don't throw
-              try {
-                const r2 = await fetch(path);
-                if (r2.ok) {
-                  found.push(path);
-                  continue;
-                }
-              } catch (e2) {
-                /* not found */
-              }
-            }
+              if (r.ok) found.push(path);
+            } catch {}
           }
           return found;
         }
 
         const slidesFiles = await discoverSlides();
-
-        const slidesEl = document.getElementById("slides");
-        const dotsEl = document.getElementById("dots");
-        const prev = document.getElementById("prev");
-        const next = document.getElementById("next");
-        const headerEl = document.getElementById("header");
-        let current = 0;
-
-        // Build slidesData = [{ html: ..., json: ... }, ...]
-        const slidesData = slidesFiles.map((p) => ({
-          html: p,
-          json: p.replace(/\.html?$/i, ".json"),
-        }));
-        // cache for loaded JSON metadata
-        const slidesMeta = new Array(slidesData.length).fill(null);
-
-        if (!slidesFiles || slidesFiles.length === 0) {
-          slidesEl.innerHTML = "<p>Aucune diapositive trouvée.</p>";
+        if (!slidesFiles.length) {
+          document.getElementById("slides").innerHTML =
+            "<p>Aucune diapo trouvée.</p>";
           return;
         }
 
-        function createSlide(fileUrl, index) {
+        // --- Références DOM ---
+        const slidesEl = document.getElementById("slides");
+        const dotsEl = document.getElementById("dots");
+        const headerEl = document.getElementById("header");
+        const prev = document.getElementById("prev");
+        const next = document.getElementById("next");
+        const fsToggle = document.getElementById("fsToggle");
+        const diaposEl = document.getElementById("diapos");
+
+        let current = 0;
+        const slidesMeta = [];
+
+        // --- Création des slides (sans iframe au départ) ---
+        slidesFiles.forEach((file, i) => {
           const slide = document.createElement("div");
           slide.className = "slide";
-          slide.setAttribute("role", "group");
-          slide.setAttribute("aria-roledescription", "slide");
-          slide.setAttribute(
-            "aria-label",
-            `Diapositive ${index + 1} de ${slidesFiles.length}`
-          );
-
-          // create an iframe to load the slide
-          const iframe = document.createElement("iframe");
-          iframe.src = fileUrl;
-          iframe.style.border = "0";
-          iframe.style.width = "100%";
-          iframe.style.height = "100%";
-          iframe.setAttribute("aria-label", `Diapositive ${index + 1}`);
-          iframe.setAttribute("allowfullscreen", "");
-
-          // placeholder while loading
-          const placeholder = document.createElement("div");
-          placeholder.className = "loading";
-          placeholder.textContent = "Chargement...";
-          slide.appendChild(placeholder);
-
-          iframe.addEventListener("load", () => {
-            if (placeholder.parentNode) placeholder.parentNode.removeChild(placeholder);
-          });
-          iframe.addEventListener("error", () => {
-            if (placeholder.parentNode) placeholder.parentNode.textContent = "Impossible de charger la diapositive.";
-          });
-
-          slide.appendChild(iframe);
+          slide.innerHTML = `<div class="loading">Chargement...</div>`;
           slidesEl.appendChild(slide);
-        }
 
-        function createDot(index) {
-          const btn = document.createElement("button");
-          btn.className = "dot";
-          btn.setAttribute("aria-label", `Aller à la diapositive ${index + 1}`);
-          btn.addEventListener("click", () => goTo(index));
-          dotsEl.appendChild(btn);
-        }
+          const dot = document.createElement("button");
+          dot.className = "dot";
+          dot.addEventListener("click", () => goTo(i));
+          dotsEl.appendChild(dot);
+        });
 
-        function render() {
-          slidesFiles.forEach((f, i) => createSlide(f, i));
-          slidesFiles.forEach((f, i) => createDot(i));
-          update();
-        }
+        // --- Fonctions principales ---
+        function loadSlide(i) {
+          const slide = slidesEl.children[i];
+          if (slide.querySelector("iframe")) return; // déjà chargé
+          const iframe = document.createElement("iframe");
+          iframe.src = slidesFiles[i];
+          iframe.onload = () => {
+            const loading = slide.querySelector(".loading");
+            if (loading) loading.remove();
+          };
+          slide.appendChild(iframe);
 
-        function update() {
-          const slides = slidesEl.querySelectorAll(".slide");
-          const dots = dotsEl.querySelectorAll(".dot");
-          slides.forEach(
-            (s, i) => (s.style.display = i === current ? "block" : "none")
-          );
-          dots.forEach((d, i) => d.classList.toggle("active", i === current));
-          // update header from JSON for current slide
-          setHeaderFor(current);
+          // charger aussi le JSON
+          const jsonUrl = slidesFiles[i].replace(/\.html?$/, ".json");
+          fetch(jsonUrl)
+            .then((r) => (r.ok ? r.json() : {}))
+            .then((meta) => {
+              slidesMeta[i] = meta;
+              if (i === current && meta.titre) headerEl.textContent = meta.titre;
+            })
+            .catch(() => (slidesMeta[i] = {}));
         }
 
         function goTo(i) {
@@ -372,101 +248,59 @@
           update();
         }
 
-        // Load JSON metadata for slide index and set header
-        function setHeaderFor(index) {
-          const meta = slidesMeta[index];
-          if (meta && meta.titre !== undefined) {
-            headerEl.innerHTML = meta.titre;
-            return;
+        function update() {
+          const slides = slidesEl.children;
+          const dots = dotsEl.children;
+          for (let i = 0; i < slides.length; i++) {
+            slides[i].classList.toggle("active", i === current);
+            dots[i].classList.toggle("active", i === current);
           }
-          const jsonUrl = slidesData[index].json;
-          fetch(jsonUrl)
-            .then((r) => {
-              if (!r.ok) throw new Error("HTTP " + r.status);
-              return r.json();
-            })
-            .then((data) => {
-              slidesMeta[index] = data || {};
-              if (data && data.titre !== undefined) {
-                headerEl.innerHTML = data.titre;
-              } else {
-                headerEl.innerHTML = "";
-              }
-            })
-            .catch((err) => {
-              // on error, clear header and cache empty object
-              slidesMeta[index] = {};
-              headerEl.innerHTML = "";
-              console.warn(
-                "Impossible de charger le JSON de la diapo",
-                jsonUrl,
-                err
-              );
-            });
+          loadSlide(current);
+          // précharger la suivante
+          loadSlide((current + 1) % slidesFiles.length);
+          const meta = slidesMeta[current];
+          headerEl.textContent = meta?.titre || "";
         }
 
-        prev.addEventListener("click", () => goTo(current - 1));
-        next.addEventListener("click", () => goTo(current + 1));
-
-        // keyboard navigation
+        // --- Navigation ---
+        prev.onclick = () => goTo(current - 1);
+        next.onclick = () => goTo(current + 1);
         document.addEventListener("keydown", (e) => {
           if (e.key === "ArrowLeft") goTo(current - 1);
           if (e.key === "ArrowRight") goTo(current + 1);
         });
 
-        // Fullscreen toggle
-        const fsToggle = document.getElementById("fsToggle");
-        const diaposEl = document.getElementById("diapos");
-
+        // --- Plein écran ---
         async function enterFullscreen(el) {
-          if (el.requestFullscreen) return el.requestFullscreen();
-          if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
-          if (el.msRequestFullscreen) return el.msRequestFullscreen();
+          if (el.requestFullscreen) await el.requestFullscreen();
+          else if (el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
         }
-
         async function exitFullscreen() {
-          if (document.exitFullscreen) return document.exitFullscreen();
-          if (document.webkitExitFullscreen)
-            return document.webkitExitFullscreen();
-          if (document.msExitFullscreen) return document.msExitFullscreen();
+          if (document.exitFullscreen) await document.exitFullscreen();
+          else if (document.webkitExitFullscreen)
+            await document.webkitExitFullscreen();
         }
-
         function isFullscreen() {
           return (
             document.fullscreenElement === diaposEl ||
-            document.webkitFullscreenElement === diaposEl ||
-            document.msFullscreenElement === diaposEl
+            document.webkitFullscreenElement === diaposEl
           );
         }
-
         async function toggleFullscreen() {
-          try {
-            if (isFullscreen()) {
-              await exitFullscreen();
-            } else {
-              await enterFullscreen(diaposEl);
-            }
-          } catch (err) {
-            console.warn("Fullscreen failed", err);
-          }
+          if (isFullscreen()) await exitFullscreen();
+          else await enterFullscreen(diaposEl);
         }
-
-        fsToggle.addEventListener("click", () => toggleFullscreen());
-
-        // update visual state when fullscreen changes
-        function onFullScreenChange() {
+        fsToggle.addEventListener("click", toggleFullscreen);
+        document.addEventListener("fullscreenchange", () => {
           const on = isFullscreen();
-          fsToggle.setAttribute("aria-pressed", String(on));
           fsToggle.textContent = on ? "⤡" : "⤢";
-          // add a class so CSS can adapt
+          fsToggle.setAttribute("aria-pressed", on);
           diaposEl.classList.toggle("fullscreen", on);
-        }
+        });
 
-        document.addEventListener("fullscreenchange", onFullScreenChange);
-        document.addEventListener("webkitfullscreenchange", onFullScreenChange);
-        document.addEventListener("msfullscreenchange", onFullScreenChange);
-
-        render();
+        // --- Démarrage ---
+        loadSlide(0);
+        update();
       })();
     </script>
   </body>
